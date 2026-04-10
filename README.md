@@ -25,7 +25,7 @@ Documenti operativi per la scelta dei componenti e la valutazione economica.
 
 Risorse per il deployment rapido e la configurazione degli apparati.
 
-* [**Template Configurazione MikroTik v1.4**](tecnopack_routeros_v1.4.rsc): Script "Infrastructure as Code" per apparati RouterOS. Implementa automaticamente Firewall, VLAN, Captive Portal e logica RBAC.
+* [**Template Configurazione MikroTik v1.4**](tecnopack_routeros_v1.4.txt): Script "Infrastructure as Code" per apparati RouterOS. Implementa automaticamente Firewall, VLAN, Captive Portal e logica RBAC.
 
 ## **🚀 Workflow Operativo**
 
