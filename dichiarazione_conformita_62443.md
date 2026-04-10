@@ -10,9 +10,9 @@ Si dichiara che la macchina/linea è progettata secondo il **Tecnopack OT Securi
 ## 2. REQUISITI IMPLEMENTATI
 * **FR 1/2:** MFA remota (Secomea/Azure AD) e Captive Portal locale con timeout 30m.
 * **FR 3:** Protezione sorgenti PLC/HMI e Audit Trail attivo.
-* **FR 4 - Riservatezza dei Dati (DC):** Utilizzo di protocolli crittografici (TLS) per le comunicazioni esterne via Secomea VPN. Le comunicazioni interne alla Cell/Area Zone non richiedono cifratura in SL-2 per requisiti di determinismo.
+* **FR 4 - Riservatezza dei Dati (DC):** Utilizzo di protocolli crittografici (TLS) per le comunicazioni esterne via Secomea VPN. Le comunicazioni interne alla Cell/Area Zone non richiedono cifratura in SL-2 per requisiti di determinismo e bassa latenza.
 * **FR 5:** Segmentazione Zone/Condotti via Stateful Firewall (Deny-by-default).
-* **FR 6/7:** Logging centralizzato, Port Lock e Disaster Recovery via script IaC.
+* **FR 6/7:** Logging centralizzato (Wazuh ready), Port Lock e Disaster Recovery via script IaC.
 
 ## 3. RESPONSABILITÀ ASSET OWNER
 * La violazione fisica dei quadri elettrici (apertura senza autorizzazione) invalida la conformità.
