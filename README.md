@@ -10,7 +10,7 @@ Questo repository costituisce il corpus documentale ufficiale di Tecnopack per l
 
 In questa sezione sono presenti i documenti che definiscono il "Cosa" e il "Perché" dell'architettura di sicurezza.
 
-* [**Design Decision Log Agnostico**](http://docs.google.com/design_log_agnostico.md): Registro delle decisioni architetturali mappate sui requisiti **SR (System Requirements)** della norma. Include il framework **CSMS Lite** per la gestione di vulnerabilità e incidenti.  
+* [**Design Decision Log Agnostico**](design_log_agnostico.md): Registro delle decisioni architetturali mappate sui requisiti **SR (System Requirements)** della norma. Include il framework **CSMS Lite** per la gestione di vulnerabilità e incidenti.  
 * [**Dichiarazione di Conformità IEC 62443**](dichiarazione_conformita_62443.md): Modello ufficiale da allegare al fascicolo tecnico della macchina per attestare il raggiungimento del livello **SL-2**.
 
 ### **⚙️ 2\. Implementazione Hardware e Costi**
