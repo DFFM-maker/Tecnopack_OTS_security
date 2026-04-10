@@ -2,6 +2,8 @@
 # TECNOPACK OT SECURITY - CONFIGURATION TEMPLATE v1.4
 # Hardware: MikroTik RouterOS (RB5009 / hEX S)
 # Target:   IEC 62443 SL-2 Compliance
+# Fix v1.4r1: aggiunto in-interface=VLAN300_Maintenance sulla regola INPUT
+#             per manutentori autenticati (chiude vettore da WAN/VLAN200)
 # =============================================================================
 
 # --- 1. IDENTITA' DISPOSITIVO ---
@@ -9,6 +11,7 @@
 
 # --- 2. DEFINIZIONE VLAN E BRIDGE ---
 /interface bridge add name=bridge1 vlan-filtering=yes
+
 /interface vlan
 add interface=bridge1 name=VLAN200_Supervision  vlan-id=200
 add interface=bridge1 name=VLAN300_Maintenance  vlan-id=300
@@ -18,26 +21,121 @@ add interface=bridge1 name=VLAN300_Maintenance  vlan-id=300
 add address=172.16.224.1/24 interface=VLAN200_Supervision
 add address=10.0.30.1/24    interface=VLAN300_Maintenance
 
-# --- 4. FIREWALL - CHAIN INPUT (Hardening SR 3.3) ---
+# --- 4. FIREWALL - CHAIN INPUT (Hardening SR 3.3 / SR 4.4) ---
+# Principio: nessun accesso al management del router tranne da VLAN300
+# dopo autenticazione Captive Portal.
 /ip firewall filter
-add chain=input connection-state=established,related action=accept
-add chain=input connection-state=invalid action=drop
-add chain=input in-interface=ether1_WAN action=drop comment="Block WAN Management"
-add chain=input src-address-list=authorized_maintenance action=accept
-add chain=input action=drop comment="Default Deny Input"
 
-# --- 5. FIREWALL - CHAIN FORWARD (Conduit SR 5.2) ---
-add chain=forward connection-state=established,related action=accept
-add chain=forward src-address-list=authorized_maintenance out-interface=VLAN200_Supervision action=accept
-add chain=forward dst-address=172.16.224.11 dst-port=4840 protocol=tcp action=accept comment="Allow OPC-UA"
-add chain=forward action=drop comment="Default Deny Forward"
+# Accetta connessioni gia' stabilite
+add chain=input connection-state=established,related action=accept \
+    comment="INPUT: Accept established/related"
 
-# --- 6. HOTSPOT & RBAC (SR 1.1 / 2.1) ---
-/ip hotspot profile add name=TP_Profile hotspot-address=10.0.30.1
-/ip hotspot user profile add name=tech address-list=authorized_maintenance idle-timeout=30m
-/ip hotspot add interface=VLAN300_Maintenance profile=TP_Profile
+# Scarta pacchetti invalidi
+add chain=input connection-state=invalid action=drop \
+    comment="INPUT: Drop invalid"
 
-# --- 7. LOGGING & NTP (SR 6.2 / 18) ---
-/system logging action add name=Dashboard remote=172.16.224.50 target=remote
-/system logging add action=Dashboard topics=firewall,account,critical,info
-/system ntp server set enabled=yes
+# Blocco totale management da WAN (SR 4.4)
+add chain=input in-interface=ether1_WAN action=drop \
+    comment="INPUT: Block ALL from WAN (SR 4.4)"
+
+# Blocco management dalla zona PLC (VLAN200) - i PLC non gestiscono il router
+add chain=input in-interface=VLAN200_Supervision action=drop \
+    comment="INPUT: Block management from PLC zone"
+
+# Accetta SSH/API solo da tecnici autenticati (in address-list) E solo
+# dalla VLAN di manutenzione - doppio vincolo: identita' + interfaccia fisica
+add chain=input \
+    src-address-list=authorized_maintenance \
+    in-interface=VLAN300_Maintenance \
+    protocol=tcp dst-port=22,8729 \
+    action=accept \
+    comment="INPUT: Allow SSH/API to authenticated techs on VLAN300 only (SR 1.1)"
+
+# Default Deny Input - tutto il resto scartato
+add chain=input action=drop \
+    comment="INPUT: Default Deny (SR 4.4)"
+
+# --- 5. FIREWALL - CHAIN FORWARD (Conduit SR 5.1 / SR 5.2) ---
+# Principio: nessun traffico inter-zona non dichiarato esplicitamente.
+
+# Accetta traffico gia' stabilito
+add chain=forward connection-state=established,related action=accept \
+    comment="FORWARD: Accept established/related"
+
+# Conduit autorizzato: MES -> PLC via OPC-UA (TCP 4840)
+add chain=forward \
+    dst-address=172.16.224.11 dst-port=4840 protocol=tcp \
+    in-interface=ether1_WAN \
+    action=accept \
+    comment="FORWARD: Conduit MES->PLC OPC-UA (SR 5.2)"
+
+# RBAC: tecnici autenticati -> zona supervisione
+# authorized_maintenance e' popolata dinamicamente dall'Hotspot al login
+add chain=forward \
+    src-address-list=authorized_maintenance \
+    out-interface=VLAN200_Supervision \
+    action=accept \
+    comment="FORWARD: RBAC authenticated techs -> PLC zone (SR 1.1 / SR 2.1)"
+
+# Default Deny Forward - blocca qualsiasi cross-zone non dichiarato
+add chain=forward action=drop \
+    comment="FORWARD: CRITICAL Default Deny (SR 5.2)"
+
+# --- 6. DESTINATION NAT - Topology Hiding (SR 4.1) ---
+/ip firewall nat
+add chain=dstnat \
+    dst-address=192.168.250.225 dst-port=4840 protocol=tcp \
+    action=dst-nat to-addresses=172.16.224.11 to-ports=4840 \
+    comment="NAT: OPC-UA alias -> PLC Master (Topology Hiding)"
+
+# --- 7. HOTSPOT & RBAC (SR 1.1 / SR 2.1) ---
+# Flusso: tecnico -> Wi-Fi VLAN300 -> Captive Portal -> autenticazione ->
+#         IP aggiunto a 'authorized_maintenance' -> accesso VLAN200 sbloccato
+/ip hotspot profile
+add name=TP_Profile hotspot-address=10.0.30.1 use-radius=no
+
+/ip hotspot user profile
+add name=tech \
+    address-list=authorized_maintenance \
+    session-timeout=4h \
+    idle-timeout=30m \
+    keepalive-timeout=none \
+    comment="RBAC: max 4h, idle 30m (SR 2.1 - no laptop incustodito)"
+
+/ip hotspot
+add interface=VLAN300_Maintenance name=Hotspot_TP profile=TP_Profile
+
+# --- 8. HARDENING SERVIZI ---
+/ip service
+set telnet  disabled=yes
+set ftp     disabled=yes
+set www     disabled=yes
+set api     disabled=yes
+set winbox  disabled=yes
+set api-ssl certificate=dashboard_cert disabled=no
+
+# --- 9. LOGGING & NTP (SR 2.8 / SR 6.1 / SR 2.9) ---
+/system logging action
+add name=Dashboard target=remote remote=172.16.224.50 \
+    comment="Syslog -> Dashboard Tecnopack (SR 2.8)"
+
+/system logging
+add action=Dashboard topics=firewall,account,critical,info \
+    comment="Log: drops, login, errori, accessi admin (SR 2.8 / SR 6.1)"
+
+/system ntp client
+set enabled=yes
+
+/system ntp client servers
+add address=192.168.250.1 comment="NTP upstream: server rete cliente"
+
+/system ntp server
+set enabled=yes broadcast=no multicasting=no \
+    comment="NTP server locale per PLC/HMI su VLAN200 (SR 2.9)"
+
+# =============================================================================
+# NOTA PORT LOCK (SwOS CSS610 - SR 7.8)
+# Da eseguire via WebUI su ogni switch periferico:
+# Tab "System" > "Static Hosts" > aggiungere MAC di ogni PLC/HMI
+# con opzione "Lock on Unknown MAC" + azione "Drop"
+# =============================================================================
