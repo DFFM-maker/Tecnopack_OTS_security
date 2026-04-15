@@ -6,6 +6,12 @@ Questo repository costituisce il corpus documentale ufficiale di Tecnopack per l
 
 ## **📂 Struttura della Documentazione**
 
+### **📖 0\. Onboarding (Per Tutti)**
+
+Documentazione accessibile per chi non conosce la norma IEC 62443.
+
+* [**Guida IEC 62443 per Tutti**](guida_62443_per_tutti.md): Spiegazione della norma in italiano semplice. Pilastri FR, glossario, checklist conformita', impatto per ogni ruolo.
+
 ### **🛡️ 1\. Strategia e Governance (Agnostica)**
 
 In questa sezione sono presenti i documenti che definiscono il "Cosa" e il "Perché" dell'architettura di sicurezza.
@@ -14,6 +20,19 @@ In questa sezione sono presenti i documenti che definiscono il "Cosa" e il "Perc
 * [**Dichiarazione di Conformità IEC 62443**](dichiarazione_conformita_62443.md): Modello ufficiale da allegare al fascicolo tecnico della macchina per attestare il raggiungimento del livello **SL-2**.
 
 ### **⚙️ 2\. Implementazione Hardware e Costi**
+
+Documenti operativi per la scelta dei componenti e la valutazione economica.
+
+* [**Hardware BOM e Analisi Vendor**](hardware_bom_completa.md): Matrice hardware comparativa e distinta base per le topologie "Macchina Singola" e "Linea Row Distribution".
+* [**Analisi Comparativa Costi**](analisi_costi_hardware.md): Dettaglio dei costi CAPEX e OPEX (5 anni) che evidenzia il risparmio dello standard **MikroTik Lean** rispetto ai vendor Premium.
+* [**Profili Vendor-Ready**](vendor_ready_profiles.md): Schede tecniche di implementazione per Fortinet, Siemens e MikroTik.
+
+### **📊 3\. Diagrammi di Rete**
+
+Diagrammi Draw.io per le topologie Macchina Singola e Linea, per entrambi gli standard hardware.
+
+* `Fortinet Network Layout.drawio` — 3 pagine: Macchina Singola, Magnemotion, Linea (FortiLink)
+* `MikroTik_Network_Layout.drawio` — 2 pagine: Macchina Singola, Linea (Hub & Spoke / Trunk 802.1Q)
 
 Documenti operativi per la scelta dei componenti e la valutazione economica.
 
