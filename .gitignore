@@ -1,0 +1,41 @@
+==========================================
+
+Tecnopack OT Security - .gitignore
+
+==========================================
+
+1. Draw.io / diagrams.net (File temporanei e di backup)
+
+Blocca tutti i file che iniziano con .$ e finiscono con dtmp o bkp
+
+.$*
+*.dtmp
+*.bkp
+.~
+
+2. File di Sistema (Windows / macOS)
+
+Blocca i file spazzatura creati dai sistemi operativi
+
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+3. Cartelle di Editor / IDE (Opzionale ma consigliato)
+
+Blocca le configurazioni locali di chi apre i file con VS Code o altri editor
+
+.vscode/
+.idea/
+*.swp
+
+4. File PDF generati (Opzionale)
+
+Togli il cancelletto (#) dalla riga sotto se NON vuoi salvare i PDF generati su GitHub
+
+*.pdf
